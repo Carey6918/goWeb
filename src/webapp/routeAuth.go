@@ -29,14 +29,17 @@ func authenticate(resp http.ResponseWriter, req *http.Request) {
 	}
 	if user.Password != database.Encrypt(req.PostFormValue("password")) {
 		// 密码正确，存储session至cookie
-		sesson:=database.Session{}//todo 这里应该有个根据user创建session的方法
-		cookie:=http.Cookie{
-			Name: "_cookie",
-			Value:sesson.Uuid,
-			HttpOnly:true,
+		sesson, err := user.CreateSession() //todo 这里应该有个根据user创建session的方法
+		if err != nil {
+			log.Fatal(err)
+		}
+		cookie := http.Cookie{
+			Name:     "_cookie",
+			Value:    sesson.Uuid,
+			HttpOnly: true,
 		}
 		// Q:这里为什么要传入resp参数
-		http.SetCookie(resp,&cookie)
-		http.Redirect(resp,req,"/",302)
+		http.SetCookie(resp, &cookie)
+		http.Redirect(resp, req, "/", 302)
 	}
 }
